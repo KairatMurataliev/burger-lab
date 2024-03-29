@@ -1,8 +1,9 @@
 import React, {useState} from 'react';
-import {Avatar, Button, Col, List, Row} from "antd";
+import {Card, Col, Row} from "antd";
 import {INGREDIENTS} from "../../contants.ts";
-import {DeleteOutlined} from "@ant-design/icons";
 import {CartIngredient} from "../../types.ts";
+import Cart from "../../components/Cart";
+import IngredientsList from "../../components/IngredientsList";
 
 const BurgerBuilder = () => {
   const [cart, setCart] = useState<CartIngredient[]>([
@@ -41,57 +42,36 @@ const BurgerBuilder = () => {
     const copyCart = [...cart];
     const index = copyCart.findIndex(item => item.name === name);
     if (index !== -1) return copyCart[index].count;
+    return 0
   }
 
-  const showIngredient = (item: CartIngredient) => {
-    const elements: React.ReactElement[] = [];
+  const getTotal = (): number => {
+     let total: number = 0;
 
-    for (let i = 0; i < item.count; i++) {
-     elements.push(<div className={item.name}></div>)
-    }
+     cart.forEach(item => {
+       const ingredient = INGREDIENTS.find(ingr => ingr.name === item.name);
 
-    return elements;
+       if (ingredient) {
+         total += ingredient.price * item.count;
+       }
+     })
+
+    return total;
   }
 
   return (
-    <Row>
+    <Row gutter={10}>
       <Col span={12}>
-        <List
-          className="demo-loadmore-list"
-          itemLayout="horizontal"
-          dataSource={INGREDIENTS}
-          renderItem={(item) => {
-            return (
-              <List.Item
-                onClick={() => onAddIngredient(item.name)}
-                actions={[
-                  <Button
-                    type='primary'
-                    disabled={renderCount(item.name) === 0}
-                    onClick={(e) => onRemoveIngredient(e, item.name)}
-                    icon={<DeleteOutlined/>}
-                  />
-                ]}
-              >
-                <List.Item.Meta
-                  avatar={<Avatar src={item.image}/>}
-                  title={item.name}
-                />
-                <div>{renderCount(item.name)}</div>
-              </List.Item>
-            )
-          }}
-        />
+        <Card title="Ingredients">
+          <IngredientsList
+            onAddIngredient={onAddIngredient}
+            onRemoveIngredient={onRemoveIngredient}
+            renderCount={renderCount}
+          />
+        </Card>
       </Col>
       <Col span={12}>
-        <div className='Burger'>
-          <div className='BreadTop'>
-            <div className='Seeds1'></div>
-            <div className='Seeds2'></div>
-          </div>
-          {cart.map((item) => showIngredient(item))}
-          <div className='BreadBottom'></div>
-        </div>
+        <Cart getTotal={getTotal} cart={cart}/>
       </Col>
     </Row>
   );
